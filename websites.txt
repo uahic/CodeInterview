@@ -1,0 +1,2 @@
+https://coderbyte.com/course/arrays-and-lists
+http://www.bogotobogo.com/cplusplus/linkedlist.php
