@@ -1,42 +1,64 @@
-#ifndef linked_list_H
-#define linked_list_H
+#ifndef LINKEDLIST_H
+#define LINKEDLIST_H
 
-struct linkedListItem
+template <typename T>
+struct SLLItem
 {
-    linkedListItem * next;
-    int node_id;
+    T data;
+    SLLItem<T> * next;
+    SLLItem()
+        : next( NULL )
+        , data()
+    {}
+    SLLItem( T data )
+        : next( NULL )
+        , data( data )
+    {}
+};
 
-    linkedListItem( int node_id, linkedListItem* next )
-        : node_id( node_id )
-        , next( next )
+template <typename T>
+struct LinkedList
+{
+    SLLItem<T> * first;
+    SLLItem<T> * last;
+
+    LinkedList()
+        : first( NULL )
+        , last( NULL )
     {}
 
-    linkedListItem();
+    void push_back( T data )
+    {
+        SLLItem<T> * item = new SLLItem<T>( data );
+        if( last == NULL )
+        {
+            last = item;
+            first = item;
+        }
+        else
+        {
+            last->next = item;
+            last = item;
+        }
+    }
+
+
+    bool is_empty()
+    {
+        if( last == NULL )
+            return true;
+        return false;
+    }
+
+    T pop_front()
+    {
+        SLLItem<T> * old_first = first;
+        if(old_first != NULL)
+            first = first->next;
+        
+        return old_first->data;
+    }
 
 };
 
-class LinkedList
-{
-    public:
-        LinkedList();
-        linkedListItem* first();
-        linkedListItem* last();
-        void append( linkedListItem * );
-        void prepend( linkedListItem * );
-
-    private:
-        linkedListItem * anchor_;
-        linkedListItem * end_;
-};
-
-std::ostream& operator<<( std::ostream& os, const LinkedList& ll )
-{
-   linkedListItem * k = ll.first();
-   while( k->next != NULL )
-   {
-       os << k->node_id << " ";
-       k = k->next;
-   }
-   return os;
-}
 #endif
