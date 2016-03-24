@@ -4,111 +4,62 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
-#include <tuple>
+#include <string>
+#include <memory>
+#include "graph.h"
 
-typedef std::tuple<int, double> Edge;
- 
 
-struct Compare
+std::vector<Node> dijkstra ( Graph &graph, Node start_node )
 {
-    bool operator()( const Edge a, const Edge b ) const 
-    {
-        if( std::get<1>(a) > std::get<1>(b) )
-            return true;
-        return false;
-    }
-};
+    std::priority_queue<Pair, std::vector<Pair>, PairComperator> pq;
+    std::vector<bool> visited ( graph.node_count, false );
+    std::vector<double> dists ( graph.node_count, std::numeric_limits<double>::infinity () );
+    std::vector<Node> parents ( graph.node_count, -1 );
 
-struct Graph
-{
-    std::vector< std::forward_list< Edge > > adj_list;
-    int node_count;
-    
-
-    Graph( int node_count )
-        : adj_list( node_count )
-        , node_count( node_count )
-    {}
-
-    Graph()
-        : adj_list( 0 )
-        , node_count( 0 )
-    {}
-};
-
-std::vector<int> dijkstra( Graph & graph, int start_node )
-{
-    std::priority_queue< Edge, std::vector<Edge>, Compare> pq; 
-    std::vector<bool> visited( graph.node_count, false );
-    std::vector<unsigned int> dists( graph.node_count, std::numeric_limits<double>::max() );
-    std::vector<int> parents( graph.node_count, -1 );
-
-    pq.push( Edge (start_node, 0.0) );
     dists[start_node] = 0.0;
-    visited[start_node] = true;
+    pq.push ( {start_node, 0.0} );
+    parents[start_node] = start_node;
 
-    while( !pq.empty() )
+    while ( !pq.empty () )
     {
-        const Edge top_edge  = pq.top();
-        pq.pop();
-        const int node = std::get<0>(top_edge);
+        const Edge top_edge = pq.top ();
+        const Node node = top_edge.first;
+        pq.pop ();
         visited[node] = true;
-        for( const Edge &edge : graph.adj_list[node] )
+        // std::cout << "Node " << node << std::endl;
+        for ( const Edge &edge : graph.adj_list[node] )
         {
-            const int neigh_node = std::get<0>(edge);
-            const double weight = std::get<1>(edge);
-            const double new_dist = dists[node] + weight;
-            if( new_dist < dists[neigh_node] )
+            const Node neigh_node = edge.first;
+            const auto neigh_weight = edge.second;
+            const auto new_dist = dists[node] + neigh_weight;
+            // std::cout << "In Node " << node << " edge (" << neigh_node << ",
+            // " << neigh_weight << "), new_dist: " << new_dist << ",
+            // dists[neigh_node] " << dists[neigh_node] << std::endl;
+            if ( new_dist < dists[neigh_node] )
             {
                 dists[neigh_node] = new_dist;
                 parents[neigh_node] = node;
             }
-            if( !visited[neigh_node] )
-                pq.push( edge );
+            if ( !visited[neigh_node] )
+                pq.push ( {neigh_node, dists[neigh_node]} );
         }
-            
     }
     return parents;
-
-}
-
-Graph* read_adj_list( int& start_node )
-{
-    std::ifstream is ( "dijkstra.in" );
-    int m;
-    int n;
-    
-
-    // Header
-    is >> n >> m >> start_node;
-    start_node--;
-
-    Graph * graph = new Graph( n );
-
-    // Rest
-    std::string buf;
-    int from_node;
-    int to_node;
-    double weight; 
-    while( is )
-    {
-        is >> from_node >> to_node >> weight;
-        from_node--;
-        to_node--;
-        graph->adj_list[ from_node ].push_front( Edge { to_node, weight } );
-    }
-    return graph;
 }
 
 
-int main()
+
+int main ()
 {
-    int start_node;
-    Graph * graph = read_adj_list( start_node );
-    std::vector<int> parents = dijkstra( *graph, start_node );
-    
+    Node start_node;
+    auto graph = read_adj_list ( start_node , std::string("dijkstra.in") );
+    print_graph ( *graph );
+    std::vector<Node> parents = dijkstra ( *graph, start_node);
+
     size_t i = 0;
-    for( std::vector<int>::iterator it = parents.begin(); 
-            it != parents.end(); i++, it++ )
-        std::cout << "\n" << i+1 << "Node " << *it +1;
+    for ( const auto &node : parents )
+    {
+        std::cout << "Parent of " << i << " is " << node << std::endl;
+        i++;
+    }
 }
