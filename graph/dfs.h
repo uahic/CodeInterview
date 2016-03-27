@@ -2,7 +2,7 @@
 #define DFS_H
 
 #include "graph.h"
-std::forward_list<Edge> dfs( Graph& graph, Node& source_node, Node& target_node );
+Path dfs_recursive( Graph& graph, Node& source_node, Node& target_node );
 
 #endif /* ifndef DFS_H */
 

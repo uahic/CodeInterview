@@ -3,53 +3,46 @@
 #include <queue>
 #include <iostream>
 #include <fstream>
-#include "graph.h"
+#include <memory>
+#include <limits>
 #include "dfs.h"
 
+bool dfs_recursive_loop( Graph& g, Node& n, Node& t, std::vector<bool>& visited, std::forward_list<Edge*>& path)
+{
+    visited[n] = true;
+    for( auto it = g.adj_list[n].begin(); it != g.adj_list[n].end(); ++it )
+    {
+        auto& edge = *it;
+        if( visited[edge.first] || edge.second <= std::numeric_limits<double>::epsilon() )
+        {
+            return false;
+        }
+        if( edge.first == t || dfs_recursive_loop( g, edge.first, t, visited, path ) )
+        {
+            path.push_front( &edge ); 
+            return true;
+        }
+    }
+    return false;
+}
 
-std::forward_list<Edge> dfs( Graph& graph, Node& source_node, Node& target_node )
+Path dfs_recursive( Graph& graph, Node& source_node, Node& target_node )
 {
     std::vector<bool> visited( graph.node_count, false );
-    std::vector<Edge> back_track( graph.node_count, {-1, 0.0});
-    std::forward_list<Edge> path;
-    std::forward_list<int> active;
-
-    active.push_front( source_node );
-
-    while( !active.empty() )
-    {
-       const Node node = active.front(); 
-       visited[node] = true;
-       active.pop_front();
-       if( node == target_node )
-           break;
-       for( const auto& edge : graph.adj_list[node])
-       {
-           if( !visited[edge.first] )
-           {
-               active.push_front(edge.first);
-               back_track[edge.first] = Edge( node, edge.second );
-           }
-       }
-    
-    }
-    Node i = target_node;
-    while( back_track[i].first > 0 )
-    {
-        path.push_front( back_track[i] );
-    }
-    return path;
+    Path path;
+    dfs_recursive_loop( graph, source_node, target_node, visited, path);
+    return std::move(path);
 }
+
     
 
-int main()
-{
-    Node start_node;
-    Node target_node = 3;
-    Graph graph = read_adj_list( start_node, std::string("dfs.in"));
-    print_graph(graph);
-    std::forward_list<Edge> path = dfs( graph, start_node, target_node );
-    
-    for( const auto& edge : path )
-        std::cout << "-->[ " << edge.first << ", " << edge.second << " ] ";
-}
+//int main()
+//{
+//    Node start_node;
+//    Node target_node = 5;
+//    Graph graph = read_adj_list( start_node, std::string("dfs.in"));
+//    print_graph(graph);
+//    std::forward_list<Edge> path = dfs( graph, start_node, target_node );
+//    print_path(path);
+//    
+//}

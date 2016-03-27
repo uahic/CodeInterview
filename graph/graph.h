@@ -11,12 +11,19 @@
 typedef int Node;
 typedef std::pair<Node, double> Pair;
 typedef std::pair<Node, double> Edge;
+typedef std::forward_list<Edge>::iterator EdgeIterator;
+typedef std::forward_list<Edge*> Path;
 
 struct EdgeComperator
 {
     bool operator()( const Edge& a, const Edge& b )
     {
         return a.second < b.second;
+    }
+
+    bool operator()( const Edge* a, const Edge *b )
+    {
+        return a->second < b->second;
     }
 
 };
@@ -52,7 +59,7 @@ struct Graph
     }
 };
 
-void print_graph ( Graph &graph )
+static void print_graph ( Graph &graph )
 {
     size_t i = 0;
     for ( const auto &edges : graph.adj_list )
@@ -65,7 +72,7 @@ void print_graph ( Graph &graph )
     }
 }
 
-Graph read_adj_list ( Node &start_node, std::string file_name )
+static Graph read_adj_list ( Node &start_node, std::string file_name )
 {
     std::ifstream is ( file_name );
     size_t m;
@@ -90,5 +97,13 @@ Graph read_adj_list ( Node &start_node, std::string file_name )
         graph.adj_list.at(from_node).push_front ( Edge{to_node, weight} );
     }
     return graph;
+}
+
+static void print_path( const Path& path )
+{
+    std::cout << "Start-Node";
+    for( const auto& edge_it : path )
+        std::cout << "-->[ " << edge_it->first << ", " << edge_it->second << " ] ";
+    std::cout << std::endl;
 }
 #endif /* ifndef GRAPH_H */

@@ -1,115 +1,63 @@
-#include <fstream>
-#include <string>
-#include <iostream>
 #include <vector>
-#include "linkedList.h"
+#include <forward_list>
+#include <queue>
+#include <iostream>
+#include <fstream>
+#include <cstddef>
+#include <limits>
+#include "graph.h"
 
-struct Vertex
+namespace
 {
-    int id;
-    Vertex * parent;
-
-    Vertex()
-        : id(-1)
-        , parent( NULL )
-    {}
-
-    Vertex( int id )
-        : id( id )
-        , parent( NULL )
-    {}
-
-};
-
-struct Graph 
-{
-    LinkedList<Vertex*> ** adj_list;    
-    Vertex * vertices;
-    int num_nodes;
-    int node_count;
-
-    Graph( size_t nodes )
-        : adj_list( new LinkedList<Vertex*>*[nodes] )
-        , vertices( new Vertex[nodes] )
-        , num_nodes( nodes )
+    void build_path( Path& path, Node& start_node, std::vector<Edge*>& parents )
     {
-        for( size_t i=0; i < num_nodes; i++ )
+        Node i = start_node;
+        while( parents[i] != nullptr )
         {
-            adj_list[i] = new LinkedList<Vertex*>();
-            vertices[i].id = i;
+            path.push_front( parents[i] );
+            i = parents[i]->first;
         }
-
+        path.reverse();
     }
-
-    void add_edge( int from_node, int to_node )
-    {
-        adj_list[from_node]->push_back( &vertices[to_node] );
-    }
-
-};
-
-
-Graph* read_adj_list( int &start_node )
-{
-    std::ifstream is ( "bfs.in" );
-    int m;
-    int n;
-
-    // Header
-    is >> n >> m >> start_node;
-
-    Graph * graph = new Graph( n );
-
-
-    // Rest
-    std::string buf;
-    int from_node;
-    int to_node;
-    while( is )
-    {
-        is >> from_node >> to_node; 
-        from_node--;
-        to_node--;
-        graph->add_edge( from_node, to_node );
-        // TODO einfuegen
-    }
-    return graph;
 }
 
-
-void bfs( Graph * graph, int start_node, int target_node )
+Path bfs( Graph& graph, Node& start_node, Node& target_node )
 {
-    LinkedList<Vertex*> * active_nodes = new LinkedList<Vertex*>();
-    active_nodes->push_back( &graph->vertices[start_node] );
+    //std::vector<bool> ist ein spezialisiertes Template und als bitset implementiert
+    Path path;
+    std::vector<bool> visited( graph.node_count, false );
+    std::vector<Edge*> parents( graph.node_count, nullptr );
+    std::queue<int> active;
+    
+    active.push( start_node );
 
-    while( !active_nodes->is_empty() )
+    while( !active.empty() )
     {
-        Vertex * node = active_nodes->pop_front();
-        SLLItem<Vertex*> * k = graph->adj_list[node->id]->first;
-        while( k != NULL )
-        {
-            if( node->id == target_node )
-            {
-                k->data->parent = node;
-                return;
-            }
-            if( k->data->parent == NULL )
-            {
-                active_nodes->push_back( k->data );
-                k->data->parent = node;
-            }
-            k = k->next;
-        }
+        const int node = active.front(); 
+        active.pop();
+        visited[node] = true; 
         
+        for( auto& edge : graph.adj_list[node] )
+        {
+            if( edge.second <= std::numeric_limits<double>::epsilon() )
+            {
+                continue;
+            }
+            if( !visited[edge.first] )
+            {
+                active.push( edge.first );
+                visited[edge.first] = true;
+                parents[node] = &edge;
+            }
+            if( edge.first == target_node )
+            {
+                build_path( path, start_node, parents );
+                return path;
+            }
+        }
+
     }
-
-
+    return path;
 }
 
-int main()
-{
-    int start_node = 0;
-    int target_node = 3;
-    Graph * graph = read_adj_list(start_node);
-    bfs( graph, start_node, target_node );
-}
+
