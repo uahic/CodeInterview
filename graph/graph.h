@@ -12,26 +12,42 @@ typedef int Node;
 typedef std::pair<Node, double> Pair;
 typedef std::pair<Node, double> Edge;
 
-struct PairComperator
+struct EdgeComperator
 {
-    bool operator()( const Pair &p1, const Pair &p2 ) const
+    bool operator()( const Edge& a, const Edge& b )
     {
-        return p1.second > p2.second;
+        return a.second < b.second;
     }
-};
 
+};
 
 struct Graph
 {
     public:
     std::vector<std::forward_list<Edge>> adj_list;
-    Node node_count;
+    int node_count;
 
-    Graph ( Node node_count ) : adj_list ( node_count ), node_count ( node_count )
+    Graph ( Node node_count ) 
+        : adj_list ( node_count )
+        , node_count ( node_count )
     {
     }
 
-    Graph () : adj_list ( 0 ), node_count ( 0 )
+    Graph( const Graph& other )
+        : adj_list( other.adj_list )
+        , node_count( other.node_count )
+    {
+    }
+    
+    Graph( Graph&& other ) noexcept 
+        : adj_list( std::move( other.adj_list ))
+        , node_count( other.node_count )
+    {
+    }
+
+    Graph () 
+        : adj_list ( 0 )
+        , node_count ( 0 )
     {
     }
 };
@@ -49,7 +65,7 @@ void print_graph ( Graph &graph )
     }
 }
 
-std::shared_ptr<Graph> read_adj_list ( Node &start_node, std::string file_name )
+Graph read_adj_list ( Node &start_node, std::string file_name )
 {
     std::ifstream is ( file_name );
     size_t m;
@@ -58,7 +74,7 @@ std::shared_ptr<Graph> read_adj_list ( Node &start_node, std::string file_name )
     // Header
     is >> n >> m >> start_node;
 
-    Graph *graph = new Graph ( n );
+    Graph graph( n );
 
     // Rest
     Node from_node;
@@ -68,9 +84,11 @@ std::shared_ptr<Graph> read_adj_list ( Node &start_node, std::string file_name )
     {
         is >> from_node >> to_node >> weight;
         if ( is.eof () )
+        {
             break;
-        graph->adj_list[from_node].push_front ( Edge{to_node, weight} );
+        }
+        graph.adj_list.at(from_node).push_front ( Edge{to_node, weight} );
     }
-    return std::shared_ptr<Graph> ( graph );
+    return graph;
 }
 #endif /* ifndef GRAPH_H */

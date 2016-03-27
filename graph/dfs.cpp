@@ -3,95 +3,53 @@
 #include <queue>
 #include <iostream>
 #include <fstream>
+#include "graph.h"
+#include "dfs.h"
 
-struct Graph
-{
-    std::forward_list<int> * adj_list;
-    int node_count;
-    
 
-    Graph( int node_count )
-        : adj_list( new std::forward_list<int>[node_count] )
-        , node_count( node_count )
-    {}
-
-    Graph()
-        : adj_list( new std::forward_list<int>[1] )
-        , node_count( 0 )
-    {}
-
-    ~Graph()
-    {
-        delete adj_list;
-    }
-};
-
-std::vector<int> dfs( Graph& graph, int source_node, int target_node )
+std::forward_list<Edge> dfs( Graph& graph, Node& source_node, Node& target_node )
 {
     std::vector<bool> visited( graph.node_count, false );
-    std::vector<int> parents( graph.node_count, -1 );
+    std::vector<Edge> back_track( graph.node_count, {-1, 0.0});
+    std::forward_list<Edge> path;
     std::forward_list<int> active;
 
     active.push_front( source_node );
 
     while( !active.empty() )
     {
-       const int node = active.front(); 
+       const Node node = active.front(); 
        visited[node] = true;
        active.pop_front();
        if( node == target_node )
            break;
-       for( auto it = graph.adj_list[node].begin(); it != graph.adj_list[node].end();
-               it++)
+       for( const auto& edge : graph.adj_list[node])
        {
-           if( !visited[*it] )
+           if( !visited[edge.first] )
            {
-               parents[*it] = node;
-               active.push_front(*it);
+               active.push_front(edge.first);
+               back_track[edge.first] = Edge( node, edge.second );
            }
        }
     
     }
-    return parents;
-}
-    
-
-Graph* read_adj_list( int& start_node )
-{
-    std::ifstream is ( "bfs.in" );
-    int m;
-    int n;
-    
-
-    // Header
-    is >> n >> m >> start_node;
-    start_node--;
-
-    Graph * graph = new Graph( n );
-
-    // Rest
-    std::string buf;
-    int from_node;
-    int to_node;
-    while( is )
+    Node i = target_node;
+    while( back_track[i].first > 0 )
     {
-        is >> from_node >> to_node; 
-        from_node--;
-        to_node--;
-        graph->adj_list[ from_node ].push_front( to_node );
+        path.push_front( back_track[i] );
     }
-    return graph;
+    return path;
 }
+    
 
 int main()
 {
-    int start_node;
-    int target_node = 3;
-    Graph * graph = read_adj_list( start_node );
-    std::vector<int> parents = dfs( *graph, start_node, target_node );
+    Node start_node;
+    Node target_node = 3;
+    Graph graph = read_adj_list( start_node, std::string("dfs.in"));
+    print_graph(graph);
+    std::forward_list<Edge> path = dfs( graph, start_node, target_node );
     
-    size_t i = 0;
-    for( std::vector<int>::iterator it = parents.begin(); 
-            it != parents.end(); i++, it++ )
-        std::cout << "\n" << i+1 << "Node " << *it +1;
+    for( const auto& edge : path )
+        std::cout << "-->[ " << edge.first << ", " << edge.second << " ] ";
 }

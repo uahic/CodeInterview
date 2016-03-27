@@ -8,7 +8,6 @@
 #include <memory>
 #include "graph.h"
 
-
 std::vector<Node> dijkstra ( Graph &graph, Node start_node )
 {
     std::priority_queue<Pair, std::vector<Pair>, PairComperator> pq;
