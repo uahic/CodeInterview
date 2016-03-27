@@ -10,15 +10,17 @@
 
 namespace
 {
-    void build_path( Path& path, Node& start_node, std::vector<Edge*>& parents )
+    typedef std::vector<std::pair<Node, Edge*>> Parentlist;
+    void build_path( Path& path, Node& start_node, Node& target_node, Parentlist& parents, std::vector<bool>& visited )
     {
-        Node i = start_node;
-        while( parents[i] != nullptr )
+        Node i = target_node;
+        while( visited[i] )
         {
-            path.push_front( parents[i] );
-            i = parents[i]->first;
+            path.push_front( parents[i].second );
+            i = parents[i].first;
+            if( i == start_node )
+                break;
         }
-        path.reverse();
     }
 }
 
@@ -28,7 +30,7 @@ Path dijkstra ( Graph &graph, Node& start_node, Node& target_node )
     std::priority_queue<Edge> pq;
     std::vector<bool> visited ( graph.node_count, false );
     std::vector<double> dists ( graph.node_count, std::numeric_limits<double>::infinity () );
-    std::vector<Edge*> parents (graph.node_count, nullptr );
+    Parentlist parents( graph.node_count );
 
     dists[start_node] = 0.0;
     pq.push ( {start_node, 0.0} );
@@ -48,7 +50,7 @@ Path dijkstra ( Graph &graph, Node& start_node, Node& target_node )
             if ( new_dist < dists[neigh_node] )
             {
                 dists[neigh_node] = new_dist;
-                parents[node] = &edge;
+                parents[edge.first] = {node, &edge};
             }
             if ( !visited[neigh_node] )
             {
@@ -56,7 +58,7 @@ Path dijkstra ( Graph &graph, Node& start_node, Node& target_node )
             }
             if ( neigh_node == target_node )
             {
-                build_path( path, start_node, parents );
+                build_path( path, start_node, target_node, parents, visited);
                 return path;
             }
 

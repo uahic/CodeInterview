@@ -9,15 +9,17 @@
 
 namespace
 {
-    void build_path( Path& path, Node& start_node, std::vector<Edge*>& parents )
+    typedef std::vector<std::pair<Node, Edge*>> Parentlist;
+    void build_path( Path& path, Node& start_node, Node& target_node, Parentlist& parents, std::vector<bool>& visited )
     {
-        Node i = start_node;
-        while( parents[i] != nullptr )
+        Node i = target_node;
+        while( visited[i] )
         {
-            path.push_front( parents[i] );
-            i = parents[i]->first;
+            path.push_front( parents[i].second );
+            i = parents[i].first;
+            if( i == start_node )
+                break;
         }
-        path.reverse();
     }
 }
 
@@ -26,7 +28,7 @@ Path bfs( Graph& graph, Node& start_node, Node& target_node )
     //std::vector<bool> ist ein spezialisiertes Template und als bitset implementiert
     Path path;
     std::vector<bool> visited( graph.node_count, false );
-    std::vector<Edge*> parents( graph.node_count, nullptr );
+    Parentlist parents( graph.node_count );
     std::queue<int> active;
     
     active.push( start_node );
@@ -47,11 +49,11 @@ Path bfs( Graph& graph, Node& start_node, Node& target_node )
             {
                 active.push( edge.first );
                 visited[edge.first] = true;
-                parents[node] = &edge;
+                parents[edge.first] = {node, &edge};
             }
             if( edge.first == target_node )
             {
-                build_path( path, start_node, parents );
+                build_path( path, start_node, target_node, parents, visited );
                 return path;
             }
         }
