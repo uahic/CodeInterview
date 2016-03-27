@@ -41,6 +41,11 @@ Path dijkstra ( Graph &graph, Node& start_node, Node& target_node )
         const Node node = top_edge.first;
         pq.pop ();
         visited[node] = true;
+        if( node == target_node )
+        {
+            build_path( path, start_node, target_node, parents, visited );
+            return path;
+        }
         // std::cout << "Node " << node << std::endl;
         for ( Edge &edge : graph.adj_list[node] )
         {
@@ -55,11 +60,6 @@ Path dijkstra ( Graph &graph, Node& start_node, Node& target_node )
             if ( !visited[neigh_node] )
             {
                 pq.push ( {neigh_node, dists[neigh_node]} );
-            }
-            if ( neigh_node == target_node )
-            {
-                build_path( path, start_node, target_node, parents, visited);
-                return path;
             }
 
         }

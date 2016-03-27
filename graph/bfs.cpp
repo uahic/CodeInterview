@@ -38,6 +38,11 @@ Path bfs( Graph& graph, Node& start_node, Node& target_node )
         const int node = active.front(); 
         active.pop();
         visited[node] = true; 
+        if( node == target_node )
+        {
+            build_path( path, start_node, target_node, parents, visited );
+            return path;
+        }
         
         for( auto& edge : graph.adj_list[node] )
         {
@@ -48,13 +53,8 @@ Path bfs( Graph& graph, Node& start_node, Node& target_node )
             if( !visited[edge.first] )
             {
                 active.push( edge.first );
-                visited[edge.first] = true;
+                //visited[edge.first] = true;
                 parents[edge.first] = {node, &edge};
-            }
-            if( edge.first == target_node )
-            {
-                build_path( path, start_node, target_node, parents, visited );
-                return path;
             }
         }
 
