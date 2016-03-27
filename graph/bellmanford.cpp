@@ -1,12 +1,30 @@
 #include <vector>
 #include <limits>
+#include <memory>
+#include <utility>
 #include "graph.h"
 #include <exception>
 
-inline bool relax_edges ( Graph &g, std::vector<Node> &parents, std::vector<double> &distances )
+namespace
+{
+    typedef std::vector<std::pair<Node, Edge*>> Parentlist;
+    void build_path( Path& path, Node& start_node, Node& target_node, Parentlist& parents, std::vector<bool>& visited )
+    {
+        Node i = target_node;
+        while( visited[i] )
+        {
+            path.push_front( parents[i].second );
+            i = parents[i].first;
+            if( i == start_node )
+                break;
+        }
+    }
+}
+
+inline bool relax_edges ( Graph &g, Parentlist &parents, std::vector<double> &distances )
 {
     bool has_relaxed = false;
-    for ( size_t i = 0; i < g.node_count; i++ )
+    for ( Node i = 0; i < g.node_count; i++ )
     {
         for ( const auto &edge : g.adj_list[i] )
         {
@@ -14,7 +32,7 @@ inline bool relax_edges ( Graph &g, std::vector<Node> &parents, std::vector<doub
             if ( new_weight < distances[edge.first] )
             {
                 distances[edge.first] = new_weight;
-                parents[edge.first] = i;
+                parents[edge.first] = {i, &edge};
                 has_relaxed = true;
             }
         }
@@ -22,13 +40,14 @@ inline bool relax_edges ( Graph &g, std::vector<Node> &parents, std::vector<doub
     return has_relaxed;
 }
 
-std::vector<Node> bellman_ford ( Graph &g, Node start_node )
+Path bellman_ford ( Graph &g, Node& start_node, Node& target_node )
 {
-    std::vector<Node> parents ( g.node_count, -1.0 );
+    Path path;
+    Parentlist parents ( g.node_count );
     std::vector<double> distances ( g.node_count, std::numeric_limits<double>::infinity () );
     distances[start_node] = 0.0;
 
-    for ( size_t i = 0; i < g.node_count; i++ )
+    for ( int i = 0; i < g.node_count; i++ )
     {
         relax_edges ( g, parents, distances );
     }
@@ -38,21 +57,6 @@ std::vector<Node> bellman_ford ( Graph &g, Node start_node )
         throw std::logic_error ( "Graph has negative cycle" );
     }
 
-    return parents;
+    return path;
 }
 
-int main ()
-{
-    Node start_node;
-    std::string file_name = "bellmanford.in";
-    auto graph = read_adj_list ( start_node , file_name );
-    print_graph ( *graph );
-    std::vector<Node> parents = bellman_ford( *graph, start_node);
-
-    size_t i = 0;
-    for ( const auto &node : parents )
-    {
-        std::cout << "Parent of " << i << " is " << node << std::endl;
-        i++;
-    }
-}
