@@ -7,6 +7,16 @@
 #include <limits>
 #include "dfs.h"
 
+namespace
+{
+    enum class MarkColor
+    {
+        White,
+        Grey,
+        Black
+    };
+}
+
 bool dfs_recursive_loop( Graph &g, Node &n, Node &t, std::vector<bool> &visited, std::forward_list<Edge *> &path )
 {
     visited[n] = true;
@@ -34,3 +44,41 @@ Path dfs_recursive( Graph &graph, Node &source_node, Node &target_node )
     return std::move( path );
 }
 
+// Alternative implementation (see Corman - Introduction to algorithms )
+
+void dfs_visit( Graph &g,
+                Node& n,
+                std::vector<MarkColor> &visited,
+                std::forward_list<Node> &finish_time,
+                std::vector<Node> &parents )
+{
+    visited[n] = MarkColor::Grey;
+    for( auto& edge : g.adj_list[n] )
+    {
+        if( visited[edge.first] == MarkColor::White )
+        {
+            parents[edge.first] = n;
+            dfs_visit( g, edge.first, visited, finish_time, parents );
+            visited[edge.first] = MarkColor::Black;
+
+        }
+    }
+    finish_time.push_front( n );
+}
+
+std::pair<std::forward_list<Node>, std::vector<Node>> dfs( Graph &g )
+{
+    std::vector<MarkColor> visited( g.node_count, MarkColor::White );
+    std::forward_list<Node> finish_time;
+    std::vector<Node> parents( g.node_count, -1 );
+
+    for( Node n = 0; n < g.node_count; ++n )
+    {
+        if( visited[n] == MarkColor::White )
+        {
+            dfs_visit( g, n, visited, finish_time, parents );
+        }
+    }
+
+    return std::make_pair( finish_time, parents );
+}

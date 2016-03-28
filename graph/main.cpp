@@ -5,11 +5,12 @@
 #include "edmondskarp.h"
 #include "fordfulkerson.h"
 #include "bellmanford.h"
+#include "toposort.h"
 
 void print_limiter()
 {
     std::cout << std::endl
-              << " ::::::::::::::::::: " << std::endl;
+              << " --------------------------------------------- " << std::endl;
 }
 
 void run_print_graph_path( Node target_node,
@@ -47,6 +48,21 @@ void run_flow_graph( Node target_node,
     std::cout << "\nMaxFlow is " << algo_result.first << std::endl;
 }
 
+void run_graph_only_input( std::string graph_file, std::string func_name, std::function<std::forward_list<Node>(Graph &)> func)
+{
+
+    print_limiter();
+    Node start_node;
+    Graph graph = read_adj_list( start_node, graph_file );
+    std::cout << std::endl
+              << func_name << " result" << std::endl;
+    for (auto node : func(graph)) {
+        std::cout << " -- " << node;  
+    }
+    std::cout << std::endl;
+}
+
+
 int main()
 {
     run_print_graph_path( Node( 5 ), std::string( "dfs.in" ), std::string( "DFS" ), dfs_recursive );
@@ -57,5 +73,7 @@ int main()
     run_flow_graph( Node( 4 ), std::string( "bfs.in" ),
                     std::string( "Edmonds-Karp (Unit-Weights)" ), edmonds_karp_unit_weights );
     run_flow_graph( Node( 5 ), std::string( "dfs.in" ), std::string( "Edmonds-Karp" ), edmonds_karp );
+    run_graph_only_input( std::string("dfs.in"), std::string("Topological Sort"), topo_sort);
+    
     return 0;
 }
