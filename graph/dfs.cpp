@@ -1,11 +1,12 @@
-#include <vector>
-#include <forward_list>
-#include <queue>
-#include <iostream>
-#include <fstream>
-#include <memory>
-#include <limits>
 #include "dfs.h"
+#include <forward_list>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <queue>
+#include <vector>
 
 namespace
 {
@@ -16,6 +17,7 @@ namespace
         Black
     };
 }
+
 
 bool dfs_recursive_loop( Graph &g, Node &n, Node &t, std::vector<bool> &visited, std::forward_list<Edge *> &path )
 {
@@ -41,44 +43,51 @@ Path dfs_recursive( Graph &graph, Node &source_node, Node &target_node )
     std::vector<bool> visited( graph.node_count, false );
     Path path;
     dfs_recursive_loop( graph, source_node, target_node, visited, path );
-    return std::move( path );
+    return path;
 }
 
 // Alternative implementation (see Corman - Introduction to algorithms )
 
 void dfs_visit( Graph &g,
-                Node& n,
+                Node &n,
                 std::vector<MarkColor> &visited,
                 std::forward_list<Node> &finish_time,
                 std::vector<Node> &parents )
 {
     visited[n] = MarkColor::Grey;
-    for( auto& edge : g.adj_list[n] )
+    for( auto &edge : g.adj_list[n] )
     {
         if( visited[edge.first] == MarkColor::White )
         {
             parents[edge.first] = n;
             dfs_visit( g, edge.first, visited, finish_time, parents );
             visited[edge.first] = MarkColor::Black;
-
         }
     }
     finish_time.push_front( n );
 }
 
-std::pair<std::forward_list<Node>, std::vector<Node>> dfs( Graph &g )
+
+void dfs( Graph &g, std::forward_list<Node> &finish_time, std::vector<Node> &parents, std::function<Node( Node )> node_accessor )
 {
     std::vector<MarkColor> visited( g.node_count, MarkColor::White );
-    std::forward_list<Node> finish_time;
-    std::vector<Node> parents( g.node_count, -1 );
-
     for( Node n = 0; n < g.node_count; ++n )
     {
         if( visited[n] == MarkColor::White )
         {
-            dfs_visit( g, n, visited, finish_time, parents );
+            Node k = node_accessor( n );
+            dfs_visit( g, k, visited, finish_time, parents );
         }
     }
+}
+
+std::pair<std::forward_list<Node>, std::vector<Node>> dfs( Graph &g )
+{
+    std::forward_list<Node> finish_time;
+    std::vector<Node> parents( g.node_count, -1 );
+
+    auto accessor = []( Node i ) { return i; };
+    dfs( g, finish_time, parents, accessor );
 
     return std::make_pair( finish_time, parents );
 }

@@ -48,6 +48,21 @@ struct Graph
     Graph() : adj_list( 0 ), node_count( 0 )
     {
     }
+
+    Graph &&transpose( )
+    {
+        Graph g_transposed( g.node_count );
+
+        for( int i = 0; i < g.node_count; ++i )
+        {
+            for( auto& edge: g.adj_list[i] )
+            {
+                g_transposed.adj_list[edge.first].push_front( Edge{ i, edge.second });
+            }
+        }
+
+        return std::move( g_transposed );
+    }
 };
 
 static void print_graph( Graph &graph )

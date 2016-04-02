@@ -1,64 +1,66 @@
 
-#include <vector>
 #include "strongcomponents.h"
 #include "dfs.h"
+#include <vector>
+#include <algorithm>
 
-namespace
+
+std::vector<int> get_finish_times( int node_count, std::forward_list<int> &finish_order )
 {
-    struct FinishTimeComparator
-    {
-        std::vector<int>& _finish_times;
-        FinishTimeComparator( std::vector<int>& finish_times)
-            : _finish_times ( finish_times)
-        {
-        }
-
-        bool operator()( const int a, const int b)
-        {
-            return _finish_times[a] < _finish_times[b];
-        }
-    };
-}
-
-std::vector<int> &&get_finish_times( int node_count, std::forward_list<int>& finish_order )
-{
-    std::vector<int> finish_times( node_count, 0); 
+    std::vector<int> finish_times( node_count, 0 );
     int i = node_count;
     for( int finish_time : finish_order )
     {
         finish_times[finish_time] = i--;
     }
-    return std::move( finish_times );
+    return finish_times;
 }
 
-Graph &&build_transposed_graph( Graph &g, std::vector<int>& finish_times )
+void pack_parents_into_set( Node& n, std::vector<Node>& parents, std::shared_ptr<std::set<Node>>& s, std::vector<std::shared_ptr<std::set<Node>>> & bins )
 {
-    std::vector<Edge&> sorted_edges;
-    FinishTimeComparator comp ( finish_times );
-    Graph transposed( g.node_count );
 
-    for( int i = 0; i < g.node_count; ++i )
+    const Node parent = parents[n];
+    if( bins[parent] != nullptr)
     {
-        for( auto &edge : g.adj_list[i] )
-        {
-            sorted_edges.push_back( edge );
-        }
-        std::sort( sorted_edges.begin(), sorted_edges.end(), comp );
-
-        for( Edge& edge : sorted_edges )
-        {
-            transposed.adj_list[edge.first].push_front( Edge{i, edge.second});
-        }
+        std::set<Node>& parent_set = *bins[parent];
+        std::merge(s->begin(), s->end(), parent_set.begin(), parent_set.end(), std::back_inserter(parent_set));
+        bins[n] = bins[parent];
     }
 
-    return std::move( transposed );
+    if( parents[n] > 0) 
+    {
+        pack_parents_into_set(parents[n], parents, bins[n], bins);
+
+
+    }
+    parents[n] = -1;
 }
 
-std::vector<int> strongly_connected_components_kosaraju( Graph &g )
+std::vector<std::set<Node>> parents_to_set( std::vector<Node> parents)
+{
+    std::vector<std::shared_ptr<std::set<Node>>> bins(parents.size(), nullptr);
+    for( Node& k : parents)
+    {
+        if( k < 0 )
+        {
+            continue;
+        }
+        
+        bins[k] = std::make_shared<std::set<Node>> (new std::set<Node>());
+        pack_parents_into_set( k, parents, bins[k], bins);
+    }
+}
+
+std::vector<std::set<Node>> strongly_connected_components_kosaraju( Graph &g )
 {
     auto dfs_result_g = dfs( g );
-    auto& finish_times = get_finish_times( g.node_count, dfs_result_g.first );
-    Graph& g_transposed = build_transposed_graph( g, finish_times );
-    //std::pair<std::forward_list<Node>, std::vector<Node>> 
-    auto dfs_result_g_transposed = dfs( g_transposed );
+    std::forward_list<Node> finish_time;
+    std::vector<Node> parents;
+    std::vector<Node> finish_time_order( dfs_result_g.first.begin(), dfs_result_g.first.end() );
+    Graph g_transposed = g.transpose();
+    auto accessor = [&]( Node i ) { return finish_time_order[i]; };
+    dfs( g_transposed, finish_time, parents, accessor);
+    
+
+
 }
