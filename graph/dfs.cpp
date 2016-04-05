@@ -7,6 +7,7 @@
 #include <memory>
 #include <queue>
 #include <vector>
+#include <set>
 
 namespace
 {
@@ -52,15 +53,15 @@ void dfs_visit( Graph &g,
                 Node &n,
                 std::vector<MarkColor> &visited,
                 std::forward_list<Node> &finish_time,
-                std::vector<Node> &parents )
+                std::set<Node> &tree)
 {
     visited[n] = MarkColor::Grey;
     for( auto &edge : g.adj_list[n] )
     {
         if( visited[edge.first] == MarkColor::White )
         {
-            parents[edge.first] = n;
-            dfs_visit( g, edge.first, visited, finish_time, parents );
+            tree.insert(edge.first);
+            dfs_visit( g, edge.first, visited, finish_time, tree);
             visited[edge.first] = MarkColor::Black;
         }
     }
@@ -68,26 +69,30 @@ void dfs_visit( Graph &g,
 }
 
 
-void dfs( Graph &g, std::forward_list<Node> &finish_time, std::vector<Node> &parents, std::function<Node( Node )> node_accessor )
+std::vector<std::set<Node>> dfs( Graph &g, std::forward_list<Node> &finish_time, std::function<Node( Node )> node_accessor )
 {
     std::vector<MarkColor> visited( g.node_count, MarkColor::White );
+    std::vector<std::set<Node>> tree_list;
     for( Node n = 0; n < g.node_count; ++n )
     {
         if( visited[n] == MarkColor::White )
         {
+            std::set<Node> tree;
             Node k = node_accessor( n );
-            dfs_visit( g, k, visited, finish_time, parents );
+            dfs_visit( g, k, visited, finish_time, tree);
+            tree_list.push_back( tree);
         }
     }
+    return tree_list;
 }
 
-std::pair<std::forward_list<Node>, std::vector<Node>> dfs( Graph &g )
+std::pair<std::forward_list<Node>, std::vector<std::set<Node>>> dfs( Graph &g )
 {
     std::forward_list<Node> finish_time;
-    std::vector<Node> parents( g.node_count, -1 );
+    std::set<Node> tree;
 
     auto accessor = []( Node i ) { return i; };
-    dfs( g, finish_time, parents, accessor );
+    auto tree_list = dfs( g, finish_time, accessor );
 
-    return std::make_pair( finish_time, parents );
+    return std::make_pair( finish_time, tree_list);
 }

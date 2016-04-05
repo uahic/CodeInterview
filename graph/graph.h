@@ -51,11 +51,11 @@ struct Graph
 
     Graph &&transpose( )
     {
-        Graph g_transposed( g.node_count );
+        Graph g_transposed( this->node_count );
 
-        for( int i = 0; i < g.node_count; ++i )
+        for( int i = 0; i < this->node_count; ++i )
         {
-            for( auto& edge: g.adj_list[i] )
+            for( auto& edge: this->adj_list[i] )
             {
                 g_transposed.adj_list[edge.first].push_front( Edge{ i, edge.second });
             }
