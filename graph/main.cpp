@@ -6,6 +6,7 @@
 #include "fordfulkerson.h"
 #include "bellmanford.h"
 #include "toposort.h"
+#include "strongcomponents.h"
 
 void print_limiter()
 {
@@ -62,9 +63,23 @@ void run_graph_only_input( std::string graph_file, std::string func_name, std::f
     std::cout << std::endl;
 }
 
+void print_tree_list( std::vector<std::set<Node>> & tree_list )
+{
+    for( auto& tree: tree_list )
+    {
+        std::cout << std::endl;
+        for( auto& node : tree ) 
+        {
+            std::cout << " -- " << node;
+        }
+    }
+    std::cout << std::endl;
+}
+
 
 int main()
 {
+    std::string dfs_file ("dfs.in");
     run_print_graph_path( Node( 5 ), std::string( "dfs.in" ), std::string( "DFS" ), dfs_recursive );
     run_print_graph_path( Node( 4 ), std::string( "bfs.in" ), std::string( "BFS" ), bfs );
     run_print_graph_path( Node( 4 ), std::string( "bfs.in" ), std::string( "DIJKSTRA" ), dijkstra );
@@ -74,6 +89,13 @@ int main()
                     std::string( "Edmonds-Karp (Unit-Weights)" ), edmonds_karp_unit_weights );
     run_flow_graph( Node( 5 ), std::string( "dfs.in" ), std::string( "Edmonds-Karp" ), edmonds_karp );
     run_graph_only_input( std::string("dfs.in"), std::string("Topological Sort"), topo_sort);
+
+
+    Node n;
+    Graph graph = read_adj_list( n , dfs_file );
+    auto tree_list = strongly_connected_components_kosaraju( graph );
+    print_tree_list(tree_list);
+
     
     return 0;
 }
