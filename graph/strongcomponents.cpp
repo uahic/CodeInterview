@@ -60,7 +60,5 @@ std::vector<std::set<Node>> strongly_connected_components_kosaraju( Graph &g )
     Graph g_transposed = g.transpose();
     auto accessor = [&]( Node i ) { return finish_time_order[i]; };
     dfs( g_transposed, finish_time, parents, accessor);
-    
-
 
 }
