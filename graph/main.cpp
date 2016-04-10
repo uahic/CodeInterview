@@ -7,6 +7,7 @@
 #include "bellmanford.h"
 #include "toposort.h"
 #include "strongcomponents.h"
+#include "mst.h"
 
 void print_limiter()
 {
@@ -76,6 +77,18 @@ void print_tree_list( std::vector<std::set<Node>> & tree_list )
     std::cout << std::endl;
 }
 
+void run_mst( std::string graph_file, std::string func_name, std::function<MST(Graph&)> func)
+{
+    print_limiter();
+    Node start_node;
+    Graph graph = read_adj_list( start_node, graph_file );
+    std::cout << std::endl
+              << func_name << " result" << std::endl;
+    MST mst = func( graph );
+    print_graph( mst.g );
+    std::cout << std::endl << "Weight " << mst.weight << std::endl;
+}
+
 
 int main()
 {
@@ -89,12 +102,9 @@ int main()
                     std::string( "Edmonds-Karp (Unit-Weights)" ), edmonds_karp_unit_weights );
     run_flow_graph( Node( 5 ), std::string( "dfs.in" ), std::string( "Edmonds-Karp" ), edmonds_karp );
     run_graph_only_input( std::string("dfs.in"), std::string("Topological Sort"), topo_sort);
+    run_mst( std::string("dfs.in"), std::string("Prim's algorithm"), prim );
 
 
-    Node n;
-    Graph graph = read_adj_list( n , dfs_file );
-    auto tree_list = strongly_connected_components_kosaraju( graph );
-    print_tree_list(tree_list);
 
     
     return 0;
