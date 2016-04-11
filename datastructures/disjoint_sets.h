@@ -29,26 +29,26 @@ class UnionFind
     {
         unsigned int root_a = find ( a );
         unsigned int root_b = find ( b );
-        if ( _ranks[a] < _ranks[b] )
+        if ( _ranks[root_a] < _ranks[root_b] )
         {
 
-            _roots[a] = root_b;
+            _roots[root_a] = root_b;
         }
-        else if ( _ranks[a] > _ranks[b] )
+        else if ( _ranks[root_a] > _ranks[root_b] )
         {
-            _roots[b] = root_a;
+            _roots[root_b] = root_a;
         }
         else
         {
-            _roots[a] = root_b;
+            _roots[root_a] = root_b;
             _ranks[root_b] += 1;
         }
     }
+    std::vector<unsigned int> _roots;
+    std::vector<unsigned int> _ranks;
 
     private:
     size_t _size;
-    std::vector<unsigned int> _roots;
-    std::vector<unsigned int> _ranks;
 
     unsigned int get_root_path_compression ( unsigned int a )
     {
@@ -61,15 +61,6 @@ class UnionFind
         return root;
     }
 
-    unsigned int get_root ( unsigned int a )
-    {
-        unsigned int i = a;
-        while ( _roots[i] != i )
-        {
-            i = _roots[i];
-        }
-        return i;
-    }
 };
 
 #endif /* DISJOINT_SETS_H */
