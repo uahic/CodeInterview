@@ -5,10 +5,6 @@
 #include "kruskal.h"
 #include "../datastructures/disjoint_sets.h"
 
-namespace 
-{
-    typedef std::pair<Node, Edge> SourceEdge;
-}
 
 MST kruskal( Graph& g )
 {

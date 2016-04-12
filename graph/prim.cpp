@@ -1,22 +1,9 @@
+
 #include <vector>
-#include <queue>
+#include <algorithm>
 #include <functional>
-#include <set>
-
-#include "mst.h"
-
-
-MST kruskal( Graph& g )
-{
-    MST mst( g.node_count );
-    std::vector<bool> visited( g.node_count, false);
-    auto comp = [](SourceEdge& a, SourceEdge& b){ return a.second.second < b.second.second; };
-   
-    std::set<Node>
-    
-
-    return mst;
-}
+#include <queue>
+#include "prim.h"
 
 
 MST prim( Graph& g )
