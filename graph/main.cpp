@@ -8,6 +8,7 @@
 #include "toposort.h"
 #include "strongcomponents.h"
 #include "mst.h"
+#include "kruskal.h"
 
 void print_limiter()
 {
@@ -102,7 +103,7 @@ int main()
                     std::string( "Edmonds-Karp (Unit-Weights)" ), edmonds_karp_unit_weights );
     run_flow_graph( Node( 5 ), std::string( "dfs.in" ), std::string( "Edmonds-Karp" ), edmonds_karp );
     run_graph_only_input( std::string("dfs.in"), std::string("Topological Sort"), topo_sort);
-    run_mst( std::string("dfs.in"), std::string("Prim's algorithm"), prim );
+    run_mst( std::string("dfs.in"), std::string("Kruskals algorithm"), kruskal);
 
 
 
